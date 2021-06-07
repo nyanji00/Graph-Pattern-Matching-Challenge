@@ -33,12 +33,15 @@ priority_queue<pair<size_t, Vertex>,
 
 void printVV(vector<vector<Vertex>> VV);
 void printV(vector<Vertex> V);
+void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs);
+void doTrace(const Graph &data, const CandidateSet &cs);
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
 vector<Vertex> findParents(Vertex u);
 void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
 Vertex firstCandidate(Vertex u);
+
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
@@ -59,37 +62,58 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* find root */
   Vertex root = findRoot(query, cs);
   calculateCm(data, cs, root);
+	Cm_queue.pop();
 
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
   printVV(parents);
   printVV(childs);
 
-  Vertex v1 = firstCandidate(root);
-  M[root] = v1;
-  M_search.insert(upper_bound(M_search.begin(), M_search.end(), v1), v1);
+	/* Start Tracing! */
+	for(size_t i = 0; i < Cm[root].size(); i++) {
+		Vertex v = Cm[root][i];
+		doInitTrace(v, root, data, cs);
+
+		// after previous candidate over...
+		M = vector<Vertex>(M.size(), -1);
+		Cm = vector<vector<Vertex>>(Cm.size(), vector<Vertex>(0));
+
+		// ...and do this again!
+	}
+}
+
+void doInitTrace(Vertex v, Vertex root, const Graph &data, const CandidateSet &cs) {
+  M[root] = v;
+  M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
 
   calculateChildsCm(data, cs, root);
-	Cm_queue.pop();
 
   while(!Cm_queue.empty()) {
     printVV(Cm);
 
 		Vertex next = Cm_queue.top().second;
-		cout << "pop! " << next << endl;
 		Cm_queue.pop();
+		for(size_t i =0; i < Cm[next].size(); i++) {
+		  Vertex candidate = Cm[next][i];
 
-		Vertex v = firstCandidate(next);
-		M[next] = v;
-		M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
-		calculateChildsCm(data, cs, next);
+			if(binary_search(M_search.begin(), M_search.end(), candidate)) {
+				continue;
+			}
+
+			doTrace(candidate, next, data, cs);
+    }
 	}
 
 	vector<Vertex>::iterator iter;
 	for(size_t i =0; i < M.size(); i++) {
 		cout << "a " << i << " " << M[i] << endl;
 	}
+}
 
+void doTrace(Vertex v, Vertex next, const Graph &data, const CandidateSet &cs) {
+	M[next] = v;
+	M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
+	calculateChildsCm(data, cs, next);
 }
 
 void printVV(vector<vector<Vertex>> VV) {
