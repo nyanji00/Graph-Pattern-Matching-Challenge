@@ -4,19 +4,25 @@
  */
 
 #include "backtrack.h"
+#include <limits>
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
 void tracking(const Graph &query, const CandidateSet &cs);
+
 std::vector<Vertex> findNext(const Graph &query, Vertex r);
+
 Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs);
+
+Vertex findRoot(const Graph &query, const CandidateSet &cs);
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
+
   std::cout << "t " << query.GetNumVertices() << "\n";
 
-  // Must not use pruning by failing sets
+  Vertex root = findRoot(query, cs);
 }
 
 void tracking(const Graph &query, const CandidateSet &cs) {
@@ -51,5 +57,22 @@ Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs) {
 	  //vp_set.push_back(M[*iter]);
 	}
 	std::vector<Vertex> cmu;
+}
 
+Vertex findRoot(const Graph &query, const CandidateSet &cs) {
+  size_t numVertice = query.GetNumVertices();
+  Vertex root = (Vertex) numVertice;
+  double minNum = std::numeric_limits<double>::max();
+
+  for(Vertex i=0; i<numVertice; i++) {
+    size_t candidateSize = cs.GetCandidateSize(i);
+    size_t degree = query.GetDegree(i);
+    double d = (double)candidateSize / (double)degree;
+    if(d < minNum) {
+      root = i;
+      minNum = d;
+    }
+  }
+
+  return root;
 }
