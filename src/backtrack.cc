@@ -26,7 +26,7 @@ struct Cm_pair_compare{
 void printVV(vector<vector<Vertex>> VV);
 void printV(vector<Vertex> V);
 void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs);
-void doTrace(Vertex v, Vertex next, vector<Vertex> M, vector<Vertex> M_search, 
+void doTrace(Vertex v, Vertex u, vector<Vertex> M, vector<Vertex> M_search, 
             priority_queue<pair<size_t, Vertex>, 
             vector<pair<size_t, Vertex>>,
             Cm_pair_compare
@@ -58,6 +58,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* initialize Cm */
   vector<vector<Vertex>> Cm(numVertice, vector<Vertex>(0));
 
+  /* initialize Cm_queue */
   priority_queue<pair<size_t, Vertex>, 
 							 vector<pair<size_t, Vertex>>,
 							 Cm_pair_compare
@@ -70,9 +71,12 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* find root */
   Vertex root = findRoot(query, cs);
 
+  /* find root's Cm */
   pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
   vector<pair<size_t, Vertex>>, Cm_pair_compare>> returnPair = calculateCm(M, Cm_queue, data, cs, root);
   Cm[root] = returnPair.first;
+
+  /* Cm_queue => (, root) */
   Cm_queue = returnPair.second;
 	Cm_queue.pop();
 
@@ -86,23 +90,27 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 	}
 }
 
-void doTrace(Vertex v, Vertex next, vector<Vertex> M, vector<Vertex> M_search, 
+void doTrace(Vertex v, Vertex u, vector<Vertex> M, vector<Vertex> M_search, 
               priority_queue<pair<size_t, Vertex>, 
 							vector<pair<size_t, Vertex>>,
 							Cm_pair_compare
 							> Cm_queue, vector<vector<Vertex>> Cm, const Graph &data, const CandidateSet &cs) {
-  M[next] = v;
+
+  M[u] = v;
   M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
 
+  /* v's child's Cm */
   pair<vector<vector<Vertex>>, priority_queue<pair<size_t, Vertex>, 
-  vector<pair<size_t, Vertex>>, Cm_pair_compare>> returnPair = calculateChildsCm(M, Cm_queue, Cm, data, cs, next);
+  vector<pair<size_t, Vertex>>, Cm_pair_compare>> 
+  returnPair = calculateChildsCm(M, Cm_queue, Cm, data, cs, u);
   Cm = returnPair.first;
   Cm_queue = returnPair.second;
 
   while(!Cm_queue.empty()) {
 		Vertex next = Cm_queue.top().second;
 		Cm_queue.pop();
-		for(size_t i =0; i < Cm[next].size(); i++) {
+
+		for(size_t i=0; i < Cm[next].size(); i++) {
 		  Vertex candidate = Cm[next][i];
 
 			if(binary_search(M_search.begin(), M_search.end(), candidate)) {
@@ -123,14 +131,8 @@ void doTrace(Vertex v, Vertex next, vector<Vertex> M, vector<Vertex> M_search,
 
   if(isFull) {
     cout << "a ";
-    for(size_t i=0; i < M_search.size(); i++) {
-      cout << M_search[i] << " ";
-    }
-    cout << endl;
+    printV(M_search);
   }
-
-  // M이 다 찼는지 확인, 안 찼으면 암것도 안함
-  // 다 찼으면 프린트하고 백트래킹
 }
 
 void printVV(vector<vector<Vertex>> VV) {
