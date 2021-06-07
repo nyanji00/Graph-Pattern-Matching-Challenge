@@ -14,34 +14,36 @@ using namespace std;
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
-vector<Vertex> M;
-vector<Vertex> M_search;
-
 vector<vector<Vertex>> parents;
 vector<vector<Vertex>> childs;
 
-vector<vector<Vertex>> Cm;
 struct Cm_pair_compare{
 	bool operator()(pair<size_t, Vertex> a, pair<size_t, Vertex> b){
 		return a.first > b.first;
 	}
 };
-priority_queue<pair<size_t, Vertex>, 
-							 vector<pair<size_t, Vertex>>,
-							 Cm_pair_compare
-							 > Cm_queue;
 
 void printVV(vector<vector<Vertex>> VV);
 void printV(vector<Vertex> V);
 void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs);
-void doTrace(const Graph &data, const CandidateSet &cs);
-void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
-void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
+void doTrace(Vertex v, Vertex next, vector<Vertex> M, vector<Vertex> M_search, 
+            priority_queue<pair<size_t, Vertex>, 
+            vector<pair<size_t, Vertex>>,
+            Cm_pair_compare
+            > Cm_queue, vector<vector<Vertex>> Cm, const Graph &data, const CandidateSet &cs);
+pair<vector<vector<Vertex>>, priority_queue<pair<size_t, Vertex>, 
+vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateChildsCm(vector<Vertex> M, priority_queue<pair<size_t, Vertex>, 
+                                                vector<pair<size_t, Vertex>>,
+                                                Cm_pair_compare
+                                                > Cm_queue, vector<vector<Vertex>> Cm, const Graph &data, const CandidateSet &cs, Vertex u);
+pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateCm(vector<Vertex> M, priority_queue<pair<size_t, Vertex>, 
+                                                vector<pair<size_t, Vertex>>,
+                                                Cm_pair_compare
+                                                > Cm_queue, const Graph &data, const CandidateSet &cs, Vertex u);
 vector<Vertex> findParents(Vertex u);
 void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
-Vertex firstCandidate(Vertex u);
-
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
@@ -50,10 +52,16 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   cout << "t " << numVertice << "\n";
 
   /* initialize M */
-  M = vector<Vertex>(numVertice, -1);
+  vector<Vertex> M(numVertice, -1);
+  vector<Vertex> M_search;
 
   /* initialize Cm */
-  Cm = vector<vector<Vertex>>(numVertice, vector<Vertex>(0));
+  vector<vector<Vertex>> Cm(numVertice, vector<Vertex>(0));
+
+  priority_queue<pair<size_t, Vertex>, 
+							 vector<pair<size_t, Vertex>>,
+							 Cm_pair_compare
+							 > Cm_queue;
 
   /* initialize parents and childs */
   parents.resize(numVertice);
@@ -61,36 +69,37 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   /* find root */
   Vertex root = findRoot(query, cs);
-  calculateCm(data, cs, root);
+
+  pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+  vector<pair<size_t, Vertex>>, Cm_pair_compare>> returnPair = calculateCm(M, Cm_queue, data, cs, root);
+  Cm[root] = returnPair.first;
+  Cm_queue = returnPair.second;
 	Cm_queue.pop();
 
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
-  printVV(parents);
-  printVV(childs);
 
 	/* Start Tracing! */
 	for(size_t i = 0; i < Cm[root].size(); i++) {
 		Vertex v = Cm[root][i];
-		doInitTrace(v, root, data, cs);
-
-		// after previous candidate over...
-		M = vector<Vertex>(M.size(), -1);
-		Cm = vector<vector<Vertex>>(Cm.size(), vector<Vertex>(0));
-
-		// ...and do this again!
+		doTrace(v, root, M, M_search, Cm_queue, Cm, data, cs);
 	}
 }
 
-void doInitTrace(Vertex v, Vertex root, const Graph &data, const CandidateSet &cs) {
-  M[root] = v;
+void doTrace(Vertex v, Vertex next, vector<Vertex> M, vector<Vertex> M_search, 
+              priority_queue<pair<size_t, Vertex>, 
+							vector<pair<size_t, Vertex>>,
+							Cm_pair_compare
+							> Cm_queue, vector<vector<Vertex>> Cm, const Graph &data, const CandidateSet &cs) {
+  M[next] = v;
   M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
 
-  calculateChildsCm(data, cs, root);
+  pair<vector<vector<Vertex>>, priority_queue<pair<size_t, Vertex>, 
+  vector<pair<size_t, Vertex>>, Cm_pair_compare>> returnPair = calculateChildsCm(M, Cm_queue, Cm, data, cs, next);
+  Cm = returnPair.first;
+  Cm_queue = returnPair.second;
 
   while(!Cm_queue.empty()) {
-    printVV(Cm);
-
 		Vertex next = Cm_queue.top().second;
 		Cm_queue.pop();
 		for(size_t i =0; i < Cm[next].size(); i++) {
@@ -100,20 +109,28 @@ void doInitTrace(Vertex v, Vertex root, const Graph &data, const CandidateSet &c
 				continue;
 			}
 
-			doTrace(candidate, next, data, cs);
+			doTrace(candidate, next, M, M_search, Cm_queue, Cm, data, cs);
     }
 	}
 
-	vector<Vertex>::iterator iter;
-	for(size_t i =0; i < M.size(); i++) {
-		cout << "a " << i << " " << M[i] << endl;
-	}
-}
+  bool isFull = true;
+  for(size_t i =0; i < M.size(); i++) {
+    if(M[i] == -1) {
+      isFull = false;
+      break;
+    }
+  }
 
-void doTrace(Vertex v, Vertex next, const Graph &data, const CandidateSet &cs) {
-	M[next] = v;
-	M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
-	calculateChildsCm(data, cs, next);
+  if(isFull) {
+    cout << "a ";
+    for(size_t i=0; i < M_search.size(); i++) {
+      cout << M_search[i] << " ";
+    }
+    cout << endl;
+  }
+
+  // M이 다 찼는지 확인, 안 찼으면 암것도 안함
+  // 다 찼으면 프린트하고 백트래킹
 }
 
 void printVV(vector<vector<Vertex>> VV) {
@@ -135,20 +152,43 @@ void printV(vector<Vertex> V) {
   cout << endl;
 }
 
-void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
+pair<vector<vector<Vertex>>, priority_queue<pair<size_t, Vertex>, 
+vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateChildsCm(vector<Vertex> M, priority_queue<pair<size_t, Vertex>, 
+							 vector<pair<size_t, Vertex>>,
+							 Cm_pair_compare
+							 > Cm_queue, vector<vector<Vertex>> Cm, const Graph &data, const CandidateSet &cs, Vertex u) {
+
   vector<Vertex>::iterator iter;
   for(iter=childs[u].begin(); iter!=childs[u].end(); iter++) {
-    calculateCm(data, cs, *iter);
+    pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+    vector<pair<size_t, Vertex>>, Cm_pair_compare>> returnPair = calculateCm(M, Cm_queue, data, cs, *iter);
+    Cm[*iter] = returnPair.first;
+    Cm_queue = returnPair.second;
   }
+
+  pair<vector<vector<Vertex>>, priority_queue<pair<size_t, Vertex>, 
+      vector<pair<size_t, Vertex>>, Cm_pair_compare>> p = make_pair(Cm, Cm_queue);
+
+  return p;
 }
 
-void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
+pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateCm(vector<Vertex> M, priority_queue<pair<size_t, Vertex>, 
+							 vector<pair<size_t, Vertex>>,
+							 Cm_pair_compare
+							 > Cm_queue, const Graph &data, const CandidateSet &cs, Vertex u) {
+
+  vector<Vertex> Cmu;
   vector<Vertex> parentsList;
 
   /* Cm can only be calculated when u's all parents are in M. */
   vector<Vertex>::iterator iter;
   for(iter=parents[u].begin(); iter!=parents[u].end(); iter++) {
-    if(M[*iter] == -1) return;
+    if(M[*iter] == -1) {
+      pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+      vector<pair<size_t, Vertex>>, Cm_pair_compare>> p = make_pair(Cmu, Cm_queue);
+      return p;
+    }
     else parentsList.push_back(M[*iter]);
   }
 
@@ -164,11 +204,15 @@ void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
       }
     }
 
-    if(isCm) Cm[u].push_back(v);
+    if(isCm) Cmu.push_back(v);
   }
 
-	pair<size_t, Vertex> p = make_pair(Cm[u].size(), u);
-  Cm_queue.push(p);
+	pair<size_t, Vertex> pr = make_pair(Cmu.size(), u);
+  Cm_queue.push(pr);
+
+  pair<vector<Vertex>, priority_queue<pair<size_t, Vertex>, 
+      vector<pair<size_t, Vertex>>, Cm_pair_compare>> p = make_pair(Cmu, Cm_queue);
+  return p;
 }
 
 vector<Vertex> findParents(Vertex u) {return parents[u];}
@@ -229,15 +273,4 @@ Vertex findRoot(const Graph &query, const CandidateSet &cs) {
   }
 
   return root;
-}
-
-Vertex firstCandidate(Vertex u) {
-  vector<Vertex>::iterator iter;
-  for(iter=Cm[u].begin(); iter!=Cm[u].end(); iter++) {
-    if(!binary_search(M_search.begin(), M_search.end(), *iter)) {
-      return *iter;
-    }
-  }
-
-  return (Vertex)(-1);
 }
