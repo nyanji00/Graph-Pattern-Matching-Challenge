@@ -5,42 +5,67 @@
 
 #include "backtrack.h"
 #include <limits>
+#include <algorithm>
+
+using namespace std;
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
+vector<Vertex> M;
+vector<Vertex> M_search;
+
 void tracking(const Graph &query, const CandidateSet &cs);
-
-std::vector<Vertex> findNext(const Graph &query, Vertex r);
-
+vector<Vertex> findNext(const Graph &query, Vertex r);
 Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs);
-
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
+Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u);
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
+  
+  size_t numVertice = query.GetNumVertices();
+  cout << "t " << numVertice << "\n";
 
-  std::cout << "t " << query.GetNumVertices() << "\n";
+  /* initialize M */
+  vector<Vertex> temp(numVertice, -1);
+  M = temp;
 
+  /* find root */
   Vertex root = findRoot(query, cs);
+
+  // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
+  // cout << firstCandidate(query, cs, 3) << endl;
 }
 
-void tracking(const Graph &query, const CandidateSet &cs) {
-  Vertex r; // = u1
-  // r = findRoot(const Graph &query);
+Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u) {
+  size_t candidateSize = cs.GetCandidateSize(u);
 
-  // get first Cm(r)
-  int32_t size_cm_r = cs.GetCandidateSize(r);
-  Vertex cm_r[size_cm_r] = {0, };
-  for(int i=0; i < size_cm_r; ++i) {
-	cm_r[i] = cs.GetCandidate(r, i);
+  for(size_t i=0; i<candidateSize; i++) {
+    Vertex v = cs.GetCandidate(u, i);
+    if(!binary_search(M_search.begin(), M_search.end(), v)) {
+      return v;
+    }
+  }
+
+  return (Vertex)(-1);
+}
+
+void tracking(const Graph &query, const CandidateSet &cs, Vertex r) {
+
+  // get first Cs(r)
+  int32_t size_cs_r = cs.GetCandidateSize(r);
+  Vertex cs_r[size_cs_r] = {0, };
+
+  for(int i=0; i < size_cs_r; ++i) {
+	  cs_r[i] = cs.GetCandidate(r, i);
   }
 
   // Find where to go
-  std::vector<Vertex> next_set = findNext(query, r);
+  vector<Vertex> next_set = findNext(query, r);
 
   // calculate cm(u')
-  std::vector<Vertex>::iterator iter;
+  vector<Vertex>::iterator iter;
   for(iter = next_set.begin(); iter != next_set.end(); iter++) {
 	  
   }
@@ -51,25 +76,25 @@ std::vector<Vertex> findNext(const Graph &query, Vertex r) {
 }
 
 Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs) {
-	std::vector<Vertex> vp_set;
-    std::vector<Vertex>::iterator iter;
+	vector<Vertex> vp_set;
+    vector<Vertex>::iterator iter;
 	for(iter = up.begin(); iter != up.end(); iter++) {
 	  //vp_set.push_back(M[*iter]);
 	}
-	std::vector<Vertex> cmu;
+	vector<Vertex> cmu;
 }
 
 Vertex findRoot(const Graph &query, const CandidateSet &cs) {
   size_t numVertice = query.GetNumVertices();
-  Vertex root = (Vertex) numVertice;
+  Vertex root = (Vertex)numVertice;
   double minNum = std::numeric_limits<double>::max();
 
-  for(Vertex i=0; i<numVertice; i++) {
+  for(size_t i=0; i<numVertice; i++) {
     size_t candidateSize = cs.GetCandidateSize(i);
     size_t degree = query.GetDegree(i);
     double d = (double)candidateSize / (double)degree;
     if(d < minNum) {
-      root = i;
+      root = (Vertex)i;
       minNum = d;
     }
   }
