@@ -31,12 +31,15 @@ priority_queue<pair<size_t, Vertex>,
 							 Cm_pair_compare
 							 > Cm_queue;
 
+void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs);
+void doTrace(const Graph &data, const CandidateSet &cs);
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
 vector<Vertex> findParents(Vertex u);
 void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
 Vertex firstCandidate(Vertex u);
+
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
@@ -61,7 +64,11 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
 
-  Vertex v1 = firstCandidate(root);
+	doInitTrace(root, data, cs);
+}
+
+void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs) {
+	Vertex v1 = firstCandidate(root);
   M[root] = v1;
   M_search.insert(upper_bound(M_search.begin(), M_search.end(), v1), v1);
 
@@ -69,6 +76,16 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 	Cm_queue.pop();
 
   while(!Cm_queue.empty()) {
+		doTrace(data, cs);
+	}
+
+	vector<Vertex>::iterator iter;
+	for(size_t i =0; i < M.size(); i++) {
+		cout << "a " << i << " " << M[i] << endl;
+	}
+}
+
+void doTrace(const Graph &data, const CandidateSet &cs) {
 		Vertex next = Cm_queue.top().second;
 		cout << "pop! " << next << endl;
 		Cm_queue.pop();
@@ -77,13 +94,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 		M[next] = v;
 		M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
 		calculateChildsCm(data, cs, next);
-	}
-
-	vector<Vertex>::iterator iter;
-	for(size_t i =0; i < M.size(); i++) {
-		cout << "a " << i << " " << M[i] << endl;
-	}
-
 }
 
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
