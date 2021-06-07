@@ -5,30 +5,55 @@
 
 #include "backtrack.h"
 #include <limits>
+#include <algorithm>
+
+using namespace std;
 
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
-std::vector<Vertex> M = {-1, };
+vector<Vertex> M;
+vector<Vertex> M_search;
 
 void tracking(const Graph &query, const CandidateSet &cs);
-
-std::vector<Vertex> findNext(const Graph &query, Vertex r);
-
-std::vector<Vertex> calculateCm(Vertex u, std::vector<Vertex> up, const Graph &data, const Graph &query, const CandidateSet &cs);
-
+vector<Vertex> findNext(const Graph &query, Vertex r);
+Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
+Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u);
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
+  
+  size_t numVertice = query.GetNumVertices();
+  cout << "t " << numVertice << "\n";
 
-  std::cout << "t " << query.GetNumVertices() << "\n";
+  /* initialize M */
+  vector<Vertex> temp(numVertice, -1);
+  M = temp;
 
+  /* find root */
   Vertex root = findRoot(query, cs);
+
+  // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
+  // cout << firstCandidate(query, cs, 3) << endl;
 }
+
 
 void tracking(const Graph &query, const CandidateSet &cs) {
 
+}
+
+Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u) {
+  size_t candidateSize = cs.GetCandidateSize(u);
+
+  for(size_t i=0; i<candidateSize; i++) {
+    Vertex v = cs.GetCandidate(u, i);
+    if(!binary_search(M_search.begin(), M_search.end(), v)) {
+      return v;
+    }
+  }
+
+  return (Vertex)(-1);
 }
 
 std::vector<Vertex> findNext(const Graph &query) {
@@ -70,15 +95,15 @@ std::vector<Vertex> calculateCm(Vertex u, std::vector<Vertex> up_set, const Grap
 
 Vertex findRoot(const Graph &query, const CandidateSet &cs) {
   size_t numVertice = query.GetNumVertices();
-  Vertex root = (Vertex) numVertice;
+  Vertex root = (Vertex)numVertice;
   double minNum = std::numeric_limits<double>::max();
 
-  for(Vertex i=0; i<numVertice; i++) {
+  for(size_t i=0; i<numVertice; i++) {
     size_t candidateSize = cs.GetCandidateSize(i);
     size_t degree = query.GetDegree(i);
     double d = (double)candidateSize / (double)degree;
     if(d < minNum) {
-      root = i;
+      root = (Vertex)i;
       minNum = d;
     }
   }
