@@ -21,11 +21,12 @@ vector<vector<Vertex>> childs;
 
 vector<vector<Vertex>> Cm;
 
+void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
 vector<Vertex> findParents(Vertex u);
 void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
-Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u);
+Vertex firstCandidate(Vertex u);
 
 void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
                                 const CandidateSet &cs) {
@@ -50,12 +51,28 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
 
-  /*
-  vector<vector<Vertex>>::iterator iter;
+  Vertex v1 = firstCandidate(root);
+  M[root] = v1;
+  M_search.insert(upper_bound(M_search.begin(), M_search.end(), v1), v1);
 
+  calculateChildsCm(data, cs, root);
+
+  vector<Vertex>::iterator iter;
+  for(iter = childs[root].begin(); iter != childs[root].end(); iter++) {
+    cout << *iter << " ";
+
+    vector<Vertex>::iterator initer;
+		for(initer = Cm[*iter].begin(); initer != Cm[*iter].end(); initer++) {
+			cout << *initer << " " << data.IsNeighbor(M[root], *initer);
+		}
+    cout << endl;
+  }
+
+  /*
+  vector<vector<Vertex>>::iterator iter2;
 	int i=0;
-  for(iter = parents.begin(); iter != parents.end(); iter++) {
-	  vector<Vertex> idx = *iter;
+  for(iter2 = parents.begin(); iter2 != parents.end(); iter2++) {
+	  vector<Vertex> idx = *iter2;
 		cout << i << " ";
 		vector<Vertex>::iterator initer;
 		for(initer = idx.begin(); initer != idx.end(); initer++) {
@@ -65,17 +82,15 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 		i++;
   }
   */
-
-
-  calculateCm(data, cs, 37);
-
-  vector<Vertex>::iterator iter;
-  for(iter = Cm[37].begin(); iter != Cm[37].end(); iter++) {
-    cout << *iter << " ";
-  }
-  cout << endl;
   
   // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
+}
+
+void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
+  vector<Vertex>::iterator iter;
+  for(iter=childs[u].begin(); iter!=childs[u].end(); iter++) {
+    calculateCm(data, cs, *iter);
+  }
 }
 
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
@@ -164,7 +179,7 @@ Vertex findRoot(const Graph &query, const CandidateSet &cs) {
   return root;
 }
 
-Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u) {
+Vertex firstCandidate(Vertex u) {
   vector<Vertex>::iterator iter;
   for(iter=Cm[u].begin(); iter!=Cm[u].end(); iter++) {
     if(!binary_search(M_search.begin(), M_search.end(), *iter)) {
