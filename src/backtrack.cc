@@ -45,6 +45,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   /* find root */
   Vertex root = findRoot(query, cs);
+  calculateCm(data, cs, root);
 
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
@@ -65,7 +66,7 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   }
   */
 
-  M[16] = 211;
+
   calculateCm(data, cs, 37);
 
   vector<Vertex>::iterator iter;
@@ -87,7 +88,7 @@ void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
     else parentsList.push_back(M[*iter]);
   }
 
-  /*  */
+  /* For one v, must be connected to all parents in M */
   for(int i=0; i<cs.GetCandidateSize(u); i++) {
     Vertex v = cs.GetCandidate(u, i);
     bool isCm = true;
@@ -164,12 +165,10 @@ Vertex findRoot(const Graph &query, const CandidateSet &cs) {
 }
 
 Vertex firstCandidate(const Graph &query, const CandidateSet &cs, Vertex u) {
-  size_t candidateSize = cs.GetCandidateSize(u);
-
-  for(size_t i=0; i<candidateSize; i++) {
-    Vertex v = cs.GetCandidate(u, i);
-    if(!binary_search(M_search.begin(), M_search.end(), v)) {
-      return v;
+  vector<Vertex>::iterator iter;
+  for(iter=Cm[u].begin(); iter!=Cm[u].end(); iter++) {
+    if(!binary_search(M_search.begin(), M_search.end(), *iter)) {
+      return *iter;
     }
   }
 
