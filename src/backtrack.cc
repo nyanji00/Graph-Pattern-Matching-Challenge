@@ -20,6 +20,7 @@ vector<vector<Vertex>> parents;
 
 vector<Vertex> findParents(Vertex u);
 
+void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 void tracking(const Graph &query, const CandidateSet &cs);
 vector<Vertex> findNext(const Graph &query, Vertex r);
 Vertex calculateCm(Vertex u, vector<Vertex> up, const CandidateSet &cs);
@@ -54,7 +55,6 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 		i++;
   }
   
-
   // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
   // cout << firstCandidate(query, cs, 3) << endl;
 }
@@ -100,19 +100,24 @@ void initializeParents(Vertex root, size_t numVertice, const Graph &query) {
   while(!q.empty()) {
     Vertex next = q.front();
     q.pop();
-    
-		size_t start_offset = query.GetNeighborStartOffset(next);
-  	size_t end_offset = query.GetNeighborEndOffset(next);
 
-  	for(size_t i = start_offset; i < end_offset; i++) {
-			Vertex child = query.GetNeighbor(i);
-			if (!visited[child]) childs.push_back(child);
-  	}
+    if(!visited[next]) {
+      childs.clear();
+      
+      visited[next] = true;
+      size_t start_offset = query.GetNeighborStartOffset(next);
+      size_t end_offset = query.GetNeighborEndOffset(next);
 
-  	for(iter = childs.begin(); iter != childs.end(); iter++) {
-    	parents[*iter].push_back(next);
-			q.push(*iter);
-  	}
+      for(size_t i=start_offset; i < end_offset; i++) {
+        Vertex child = query.GetNeighbor(i);
+        if (!visited[child]) childs.push_back(child);
+      }
+
+      for(iter = childs.begin(); iter != childs.end(); iter++) {
+        parents[*iter].push_back(next);
+        q.push(*iter);
+      }
+    }
   }
 }
 
