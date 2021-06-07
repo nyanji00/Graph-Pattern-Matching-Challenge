@@ -60,23 +60,45 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   /* find root */
   Vertex root = findRoot(query, cs);
   calculateCm(data, cs, root);
+	Cm_queue.pop();
 
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
 
-	doInitTrace(root, data, cs);
+	/* Start Tracing! */
+	for(size_t i = 0; i < Cm[root].size(); i++) {
+		Vertex v = Cm[root][i];
+		doInitTrace(v, root, data, cs);
+
+		// after previous candidate over...
+		M = vector<Vertex>(M.size(), -1);
+		Cm = vector<vector<Vertex>>(Cm.size(), vector<Vertex>(0));
+
+		// ...and do this again!
+	}
 }
 
-void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs) {
-	Vertex v1 = firstCandidate(root);
-  M[root] = v1;
-  M_search.insert(upper_bound(M_search.begin(), M_search.end(), v1), v1);
+void doInitTrace(Vertex v, Vertex root, const Graph &data, const CandidateSet &cs) {
+  M[root] = v;
+  M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
 
   calculateChildsCm(data, cs, root);
-	Cm_queue.pop();
 
   while(!Cm_queue.empty()) {
-		doTrace(data, cs);
+		Vertex next = Cm_queue.top().second;
+		Cm_queue.pop();
+		for(size_t i =0; i < Cm[next].size(); i++) {
+		  Vertex candidate = Cm[next][i];
+
+			if(binary_search(M_search.begin(), M_search.end(), candidate)) {
+				continue;
+			}
+
+			doTrace(candidate, next, data, cs);
+    }
+	}
+	if ( /* M에 -1이 아무것도 없으면 */ ) {
+		
 	}
 
 	vector<Vertex>::iterator iter;
@@ -85,15 +107,10 @@ void doInitTrace(Vertex root, const Graph &data, const CandidateSet &cs) {
 	}
 }
 
-void doTrace(const Graph &data, const CandidateSet &cs) {
-		Vertex next = Cm_queue.top().second;
-		cout << "pop! " << next << endl;
-		Cm_queue.pop();
-
-		Vertex v = firstCandidate(next);
-		M[next] = v;
-		M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
-		calculateChildsCm(data, cs, next);
+void doTrace(Vertex v, Vertex next, const Graph &data, const CandidateSet &cs) {
+	M[next] = v;
+	M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
+	calculateChildsCm(data, cs, next);
 }
 
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
