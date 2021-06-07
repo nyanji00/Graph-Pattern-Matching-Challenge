@@ -31,6 +31,8 @@ priority_queue<pair<size_t, Vertex>,
 							 Cm_pair_compare
 							 > Cm_queue;
 
+void printVV(vector<vector<Vertex>> VV);
+void printV(vector<Vertex> V);
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
 vector<Vertex> findParents(Vertex u);
@@ -60,6 +62,8 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   /* Parents and Childs */
   initializeParents(root, numVertice, query);
+  printVV(parents);
+  printVV(childs);
 
   Vertex v1 = firstCandidate(root);
   M[root] = v1;
@@ -69,6 +73,8 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 	Cm_queue.pop();
 
   while(!Cm_queue.empty()) {
+    printVV(Cm);
+
 		Vertex next = Cm_queue.top().second;
 		cout << "pop! " << next << endl;
 		Cm_queue.pop();
@@ -84,6 +90,25 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 		cout << "a " << i << " " << M[i] << endl;
 	}
 
+}
+
+void printVV(vector<vector<Vertex>> VV) {
+  int i = 0;
+
+  vector<vector<Vertex>>::iterator iter;
+  for(iter=VV.begin(); iter!=VV.end(); iter++) {
+    cout << i << " ";
+    printV(VV[i]);
+    i++;
+  }
+}
+
+void printV(vector<Vertex> V) {
+  vector<Vertex>::iterator iter;
+  for(iter=V.begin(); iter!=V.end(); iter++) {
+    cout << *iter << " ";
+  }
+  cout << endl;
 }
 
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
