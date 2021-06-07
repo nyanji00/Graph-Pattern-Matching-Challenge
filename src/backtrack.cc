@@ -7,6 +7,7 @@
 #include <limits>
 #include <algorithm>
 #include <queue>
+#include <utility>
 
 using namespace std;
 
@@ -20,6 +21,15 @@ vector<vector<Vertex>> parents;
 vector<vector<Vertex>> childs;
 
 vector<vector<Vertex>> Cm;
+struct Cm_pair_compare{
+	bool operator()(pair<size_t, Vertex> a, pair<size_t, Vertex> b){
+		return a.first > b.first;
+	}
+};
+priority_queue<pair<size_t, Vertex>, 
+							 vector<pair<size_t, Vertex>>,
+							 Cm_pair_compare
+							 > Cm_queue;
 
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u);
 void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u);
@@ -56,34 +66,24 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
   M_search.insert(upper_bound(M_search.begin(), M_search.end(), v1), v1);
 
   calculateChildsCm(data, cs, root);
+	Cm_queue.pop();
 
-  vector<Vertex>::iterator iter;
-  for(iter = childs[root].begin(); iter != childs[root].end(); iter++) {
-    cout << *iter << " ";
+  while(!Cm_queue.empty()) {
+		Vertex next = Cm_queue.top().second;
+		cout << "pop! " << next << endl;
+		Cm_queue.pop();
 
-    vector<Vertex>::iterator initer;
-		for(initer = Cm[*iter].begin(); initer != Cm[*iter].end(); initer++) {
-			cout << *initer << " " << data.IsNeighbor(M[root], *initer);
-		}
-    cout << endl;
-  }
+		Vertex v = firstCandidate(next);
+		M[next] = v;
+		M_search.insert(upper_bound(M_search.begin(), M_search.end(), v), v);
+		calculateChildsCm(data, cs, next);
+	}
 
-  /*
-  vector<vector<Vertex>>::iterator iter2;
-	int i=0;
-  for(iter2 = parents.begin(); iter2 != parents.end(); iter2++) {
-	  vector<Vertex> idx = *iter2;
-		cout << i << " ";
-		vector<Vertex>::iterator initer;
-		for(initer = idx.begin(); initer != idx.end(); initer++) {
-			cout << *initer << " ";
-		}
-		cout << endl;
-		i++;
-  }
-  */
-  
-  // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
+	vector<Vertex>::iterator iter;
+	for(size_t i =0; i < M.size(); i++) {
+		cout << "a " << i << " " << M[i] << endl;
+	}
+
 }
 
 void calculateChildsCm(const Graph &data, const CandidateSet &cs, Vertex u) {
@@ -104,7 +104,7 @@ void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
   }
 
   /* For one v, must be connected to all parents in M */
-  for(int i=0; i<cs.GetCandidateSize(u); i++) {
+  for(size_t i=0; i<cs.GetCandidateSize(u); i++) {
     Vertex v = cs.GetCandidate(u, i);
     bool isCm = true;
 
@@ -117,6 +117,9 @@ void calculateCm(const Graph &data, const CandidateSet &cs, Vertex u) {
 
     if(isCm) Cm[u].push_back(v);
   }
+
+	pair<size_t, Vertex> p = make_pair(Cm[u].size(), u);
+  Cm_queue.push(p);
 }
 
 vector<Vertex> findParents(Vertex u) {return parents[u];}
