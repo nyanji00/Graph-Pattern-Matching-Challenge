@@ -1,5 +1,0 @@
-/mnt/c/Users/wl778/Algorithm-Challenge/build/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/wl778/Algorithm-Challenge/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/wl778/Algorithm-Challenge/build/main/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/wl778/Algorithm-Challenge/build/main/CMakeFiles/edit_cache.dir
-/mnt/c/Users/wl778/Algorithm-Challenge/build/main/CMakeFiles/program.dir
