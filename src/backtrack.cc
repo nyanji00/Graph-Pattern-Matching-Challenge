@@ -42,7 +42,8 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 
   /* initialize Parents */
   initializeParents(root, numVertice, query);
-  vector<vector<Vertex>>::iterator iter;
+
+  /* vector<vector<Vertex>>::iterator iter;
 	int i=0;
   for(iter = parents.begin(); iter != parents.end(); iter++) {
 	  vector<Vertex> idx = *iter;
@@ -53,7 +54,9 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 		}
 		cout << endl;
 		i++;
-  }
+  } */
+
+	
   
   // M_search.insert(upper_bound(M_search.begin(), M_search.end(), 161), 161);
   // cout << firstCandidate(query, cs, 3) << endl;
