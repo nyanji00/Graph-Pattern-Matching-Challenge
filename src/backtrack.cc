@@ -9,11 +9,13 @@
 Backtrack::Backtrack() {}
 Backtrack::~Backtrack() {}
 
+std::vector<Vertex> M = {-1, };
+
 void tracking(const Graph &query, const CandidateSet &cs);
 
 std::vector<Vertex> findNext(const Graph &query, Vertex r);
 
-Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs);
+std::vector<Vertex> calculateCm(Vertex u, std::vector<Vertex> up, const Graph &data, const Graph &query, const CandidateSet &cs);
 
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
 
@@ -26,37 +28,44 @@ void Backtrack::PrintAllMatches(const Graph &data, const Graph &query,
 }
 
 void tracking(const Graph &query, const CandidateSet &cs) {
-  Vertex r; // = u1
-  // r = findRoot(const Graph &query);
 
-  // get first Cm(r)
-  int32_t size_cm_r = cs.GetCandidateSize(r);
-  Vertex cm_r[size_cm_r] = {0, };
-  for(int i=0; i < size_cm_r; ++i) {
-	cm_r[i] = cs.GetCandidate(r, i);
-  }
-
-  // Find where to go
-  std::vector<Vertex> next_set = findNext(query, r);
-
-  // calculate cm(u')
-  std::vector<Vertex>::iterator iter;
-  for(iter = next_set.begin(); iter != next_set.end(); iter++) {
-	  
-  }
 }
 
-std::vector<Vertex> findNext(const Graph &query, Vertex r) {
+std::vector<Vertex> findNext(const Graph &query) {
   
 }
 
-Vertex calculateCm(Vertex u, std::vector<Vertex> up, const CandidateSet &cs) {
+std::vector<Vertex> calculateCm(Vertex u, std::vector<Vertex> up_set, const Graph &data, const Graph &query, const CandidateSet &cs) {
+	
+	// complete parent vertex set
 	std::vector<Vertex> vp_set;
-    std::vector<Vertex>::iterator iter;
-	for(iter = up.begin(); iter != up.end(); iter++) {
-	  //vp_set.push_back(M[*iter]);
+
+	std::vector<Vertex>::iterator iter;
+	for(iter = up_set.begin(); iter != up_set.end(); iter++) {
+		vp_set[*iter] = M[*iter];
 	}
-	std::vector<Vertex> cmu;
+	
+	// get possible candidates of u
+	size_t size_cs_u = cs.GetCandidateSize(u);
+	size_t size_cm_u = 0;
+	std::vector<Vertex> cs_u(size_cs_u);
+	std::vector<Vertex> cm_u;
+
+	for(size_t i = 0; i < size_cs_u; i++) {
+
+	  cs_u[i] = cs.GetCandidate(u, i);
+
+	  for(iter = vp_set.begin(); iter != vp_set.end(); iter++) {
+
+		if( !data.IsNeighbor(cs_u[i], *iter )) {
+			continue;
+		}
+
+		cm_u[i] = cs_u[i];
+	  }
+	}
+
+	return cm_u;
 }
 
 Vertex findRoot(const Graph &query, const CandidateSet &cs) {
