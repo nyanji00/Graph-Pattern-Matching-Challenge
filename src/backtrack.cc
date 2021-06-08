@@ -17,6 +17,8 @@ Backtrack::~Backtrack() {}
 vector<vector<Vertex>> parents;
 vector<vector<Vertex>> childs;
 
+int cnt = 0;
+
 struct Cm_pair_compare{
 	bool operator()(pair<size_t, Vertex> a, pair<size_t, Vertex> b){
 		return a.first > b.first;
@@ -106,7 +108,7 @@ void doTrace(Vertex v, Vertex u, vector<Vertex> M, vector<Vertex> M_search,
   Cm = returnPair.first;
   Cm_queue = returnPair.second;
 
-  while(!Cm_queue.empty()) {
+  if(!Cm_queue.empty()) {
 		Vertex next = Cm_queue.top().second;
 		Cm_queue.pop();
 
@@ -132,6 +134,11 @@ void doTrace(Vertex v, Vertex u, vector<Vertex> M, vector<Vertex> M_search,
   if(isFull) {
     cout << "a ";
     printV(M_search);
+    cnt++;
+
+    if(cnt >= 100000) {
+      exit(0);
+    }
   }
 }
 
