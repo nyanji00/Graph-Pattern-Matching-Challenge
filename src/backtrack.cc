@@ -111,21 +111,26 @@ void doTrace(Vertex v, Vertex u, vector<Vertex> M, vector<Vertex> M_search,
 		Vertex next = Cm_queue.top().second;
 		Cm_queue.pop();
 
-		for(size_t i=0; i < Cm[next].size(); i++) {
+		bool isPossible = false;
+		for(size_t i=0; i < Cm[next].size(); ++i) {
 		  Vertex candidate = Cm[next][i];
 
 			if(binary_search(M_search.begin(), M_search.end(), candidate)) {
 				continue;
 			}
 
+			isPossible = true;
 			doTrace(candidate, next, M, M_search, Cm_queue, Cm, data, cs);
     }
+
+		if(!isPossible) return;
 	}
 
   bool isFull = true;
   for(size_t i =0; i < M.size(); i++) {
     if(M[i] == -1) {
       isFull = false;
+			cout << "No!" << endl;
       break;
     }
   }
