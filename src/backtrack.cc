@@ -43,7 +43,6 @@ vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateCm(vector<Vertex> M, pr
                                                 vector<pair<size_t, Vertex>>,
                                                 Cm_pair_compare
                                                 > Cm_queue, const Graph &data, const CandidateSet &cs, Vertex u);
-vector<Vertex> findParents(Vertex u);
 void initializeParents(Vertex root, size_t numVertice, const Graph &query);
 Vertex findRoot(const Graph &query, const CandidateSet &cs);
 
@@ -223,8 +222,6 @@ vector<pair<size_t, Vertex>>, Cm_pair_compare>> calculateCm(vector<Vertex> M, pr
       vector<pair<size_t, Vertex>>, Cm_pair_compare>> p = make_pair(Cmu, Cm_queue);
   return p;
 }
-
-vector<Vertex> findParents(Vertex u) {return parents[u];}
 
 void initializeParents(Vertex root, size_t numVertice, const Graph &query) {
   queue<Vertex> q;
